@@ -46,11 +46,10 @@ class AddEditTaskActivity : AppCompatActivity() {
         etTime = findViewById(R.id.etTime)
         switchDone = findViewById(R.id.switchDone)
 
-
         taskId = intent.getLongExtra("task_id", -1L)
 
         if (taskId != -1L) {
-
+            // РЕЖИМ РЕДАКТИРОВАНИЯ
             title = getString(R.string.title_edit_task)
             viewModel.loadTask(taskId) { task ->
                 existingTask = task
@@ -63,13 +62,16 @@ class AddEditTaskActivity : AppCompatActivity() {
                 }
             }
         } else {
+            // РЕЖИМ СОЗДАНИЯ
             title = getString(R.string.title_add_task)
-            val now = Calendar.getInstance()
-            etDate.setText(formatDate(now))
-            etTime.setText(formatTime(now))
+
+            // Если дата передана из календаря — используем её, иначе сегодняшнюю
+            val presetDate = intent.getStringExtra("preset_date")
+            etDate.setText(presetDate ?: formatDate(Calendar.getInstance()))
+            etTime.setText(formatTime(Calendar.getInstance()))
         }
 
-
+        // Клик по полю даты — открываем DatePickerDialog
         etDate.setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(
@@ -85,6 +87,7 @@ class AddEditTaskActivity : AppCompatActivity() {
             ).show()
         }
 
+        // Клик по полю времени — открываем TimePickerDialog
         etTime.setOnClickListener {
             val cal = Calendar.getInstance()
             TimePickerDialog(
@@ -97,11 +100,11 @@ class AddEditTaskActivity : AppCompatActivity() {
                 },
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
-                true
+                true // 24-часовой формат
             ).show()
         }
 
-
+        // Кнопка «Сохранить»
         findViewById<Button>(R.id.btnSave).setOnClickListener {
             saveTask()
         }
@@ -121,9 +124,9 @@ class AddEditTaskActivity : AppCompatActivity() {
         }
         tilTitle.error = null
 
-        // Валидация даты и времени: задача не может быть в прошлом.
-        //    Пропускаем проверку для режима редактирования уже выполненной задачи —
-        //    её дата может быть в прошлом, и это нормально.
+        // 2. Валидация даты и времени: задача не может быть в прошлом.
+        // Пропускаем проверку для режима редактирования уже выполненной задачи —
+        // её дата может быть в прошлом, и это нормально.
         val skipDateTimeCheck = existingTask?.isDone == true && isDone
 
         if (!skipDateTimeCheck) {
@@ -134,7 +137,7 @@ class AddEditTaskActivity : AppCompatActivity() {
             }
         }
 
-
+        // 3. Сохранение
         if (existingTask != null) {
             val updated = existingTask!!.copy(
                 title = title,

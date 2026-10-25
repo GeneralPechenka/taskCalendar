@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
@@ -8,8 +9,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar">
 
+        <!-- Календарь теперь главный экран (точка входа) -->
         <activity
-            android:name=".UI.MainActivity"
+            android:name=".UI.CalendarActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,11 +19,23 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".UI.TaskDetailsActivity" android:exported="false" />
-        <activity android:name=".UI.DebugActivity" android:exported="false" />
+        <!-- Остальные экраны (открываются только изнутри приложения) -->
+        <activity
+            android:name=".UI.MainActivity"
+            android:exported="false" />
+
         <activity
             android:name=".UI.AddEditTaskActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".UI.TaskDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".UI.DebugActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
