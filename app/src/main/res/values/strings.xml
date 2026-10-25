@@ -32,4 +32,8 @@
     <string name="calendar_title">Календарь</string>
     <string name="tasks_for_date">Задачи на %1$s</string>
     <string name="nav_calendar">Календарь</string>
+    <string name="debug">Debug</string>
+    <string name="add_task_title">Добавить задачу</string>
+
+
 </resources>

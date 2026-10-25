@@ -19,22 +19,21 @@ import java.util.Locale
 @OptIn(ExperimentalCoroutinesApi::class)
 class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
 
-    // Все задачи — для главного экрана (можно оставить)
     val allTasks: StateFlow<List<Task>> = repository.getAllTasks()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Выбранная дата (по умолчанию — сегодня)
     private val _selectedDate = MutableStateFlow(getTodayDate())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
-    // Задачи на выбранную дату — автоматически обновляются при смене дня
     val tasksForSelectedDate: StateFlow<List<Task>> = _selectedDate
         .flatMapLatest { date -> repository.getTasksByDate(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Список дат месяца, в которых есть задачи (для точек)
     private val _datesWithTasks = MutableStateFlow<Set<String>>(emptySet())
     val datesWithTasks: StateFlow<Set<String>> = _datesWithTasks.asStateFlow()
+
+    // Храним префикс текущего открытого месяца в календаре (например, "2026-10")
+    private var currentMonthPrefix: String? = null
 
     fun setSelectedDate(date: String) {
         _selectedDate.value = date
@@ -42,22 +41,42 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
 
     fun loadDatesForMonth(year: Int, month: Int) {
         val prefix = String.format(Locale.getDefault(), "%04d-%02d", year, month + 1)
+        currentMonthPrefix = prefix
         viewModelScope.launch {
             val dates = repository.getDatesWithTasksForMonth(prefix)
             _datesWithTasks.value = dates.toSet()
         }
     }
 
+    // Вспомогательный метод, чтобы обновить точки после любых действий
+    private fun refreshDatesIfNeeded() {
+        currentMonthPrefix?.let { prefix ->
+            viewModelScope.launch {
+                val dates = repository.getDatesWithTasksForMonth(prefix)
+                _datesWithTasks.value = dates.toSet()
+            }
+        }
+    }
+
     fun addTask(task: Task) {
-        viewModelScope.launch { repository.insert(task) }
+        viewModelScope.launch {
+            repository.insert(task)
+            refreshDatesIfNeeded()
+        }
     }
 
     fun updateTask(task: Task) {
-        viewModelScope.launch { repository.update(task) }
+        viewModelScope.launch {
+            repository.update(task)
+            refreshDatesIfNeeded()
+        }
     }
 
     fun deleteTask(task: Task) {
-        viewModelScope.launch { repository.delete(task) }
+        viewModelScope.launch {
+            repository.delete(task)
+            refreshDatesIfNeeded()
+        }
     }
 
     fun loadTask(taskId: Long, onLoaded: (Task?) -> Unit) {

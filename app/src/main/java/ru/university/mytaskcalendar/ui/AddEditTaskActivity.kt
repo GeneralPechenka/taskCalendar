@@ -1,4 +1,4 @@
-package ru.university.mytaskcalendar.UI
+package ru.university.mytaskcalendar.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
